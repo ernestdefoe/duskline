@@ -27,7 +27,7 @@ export const t = (key: string, params: Record<string, unknown> = {}) => app.tran
 
 export const motionOk = () => !window.matchMedia('(prefers-reduced-motion: reduce)').matches && !html.hasAttribute('data-dusk-motion');
 
-export const saveData = () => !!(navigator as any).connection?.saveData;
+export const saveData = () => !!(navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
 
 export const device = {
   get(): DevicePrefs {
