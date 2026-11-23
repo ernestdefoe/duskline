@@ -1,23 +1,27 @@
 import app from 'flarum/forum/app';
 import Component from 'flarum/common/Component';
 import Link from 'flarum/common/components/Link';
-import { rankName, standing, t } from '../util';
+import type User from 'flarum/common/models/User';
+import { RANKS, rankName, rankStart, standing } from '../renown';
+import { t } from '../util';
 
-/** Three ranks behind, the current one, three ahead: Renown's ranks as a road. */
-export default class RankRoad extends Component<{ user: any }> {
+/** Stops shown on the road: the current rank with up to three either side. */
+const STOPS = 7;
+
+/** Renown's ranks as a road, above a member's posts. */
+export default class RankRoad extends Component<{ user: User }> {
   view() {
     const user = this.attrs.user;
     const s = standing(user);
     if (!s) return null;
-    const first = Math.max(1, Math.min(s.rank - 3, 20 - 6));
-    const ranks = Array.from({ length: Math.min(7, 20) }, (_, i) => first + i);
+    const first = Math.max(1, Math.min(s.rank - 3, RANKS - STOPS + 1));
+    const ranks = Array.from({ length: STOPS }, (_, i) => first + i);
     const done = ranks.indexOf(s.rank);
-    const nextRankLevel = s.rank < 20 ? s.rank * 5 + 1 : null;
     let renownHref: string | null = null;
     try {
       renownHref = app.route('user.renown', { username: user.slug() });
     } catch {
-      // Renown without its profile tab.
+      renownHref = null; // A Renown without its profile tab.
     }
 
     return (
@@ -25,7 +29,7 @@ export default class RankRoad extends Component<{ user: any }> {
         <div className="DuskRoad-head">
           <h3 className="DuskRoad-title">{t('road.title')}</h3>
           <span className="DuskRoad-note">
-            {nextRankLevel ? t('road.to_next', { count: nextRankLevel - s.level, rank: rankName(s.rank + 1) }) : t('road.top')}
+            {s.rank < RANKS ? t('road.to_next', { count: rankStart(s.rank + 1) - s.level, rank: rankName(s.rank + 1) }) : t('road.top')}
           </span>
           {renownHref ? (
             <Link className="DuskRoad-all" href={renownHref}>
@@ -33,7 +37,7 @@ export default class RankRoad extends Component<{ user: any }> {
             </Link>
           ) : null}
         </div>
-        <ol className="DuskRoad-track" style={{ '--done': done / (ranks.length - 1) }}>
+        <ol className="DuskRoad-track" style={{ '--done': done / (STOPS - 1) }}>
           {ranks.map((rank) => (
             <li
               className={'DuskRoad-stop' + (rank < s.rank ? ' is-done' : rank === s.rank ? ' is-current' : '')}

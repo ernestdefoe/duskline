@@ -1,9 +1,11 @@
 import app from 'flarum/forum/app';
 import Component from 'flarum/common/Component';
-import { rankName, standing, t } from '../util';
+import type User from 'flarum/common/models/User';
+import { rankName, standing } from '../renown';
+import { t } from '../util';
 
-/** Progress to the next Renown level (only for members carrying Renown's attributes). */
-export default class XpPanel extends Component<{ user: any }> {
+/** Progress to the next Renown level (only with Renown). */
+export default class XpPanel extends Component<{ user: User }> {
   view() {
     const s = standing(this.attrs.user);
     if (!s) return null;

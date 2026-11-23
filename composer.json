@@ -64,6 +64,7 @@
         "source": "https://github.com/ernestdefoe/duskline"
     },
     "require-dev": {
+        "ernestdefoe/wardrobe": "*",
         "flarum/phpstan": "^2.0",
         "flarum/tags": "^2.0",
         "flarum/testing": "^2.0",

@@ -151,58 +151,60 @@ const PALM =
   'M29-178C34-212 62-232 92-232C66-222 46-204 33-176Z' +
   'M29-178C18-210-6-226-34-224C-10-214 10-198 25-175Z';
 
-/** The illustration for one scene. Deterministic (seeded), so it never jumps between redraws. */
-export function skySvg(scene: Scene, uid: string): string {
-  const s = P[scene];
-  let seed = 7;
-  const rnd = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
-  const near = (x: number, w: number) => s.stripe && x < s.cx + s.r + 6 && x + w > s.cx - s.r - 6;
-  const o: string[] = [];
-  const id = (n: string) => `${n}-${uid}`;
+/** What every layer needs: the palette, a seeded random sequence and unique ids. */
+type Ctx = { scene: Scene; s: Palette; rnd: () => number; id: (name: string) => string };
 
-  o.push(
-    `<svg class="DuskSky-art" viewBox="0 0 1280 320" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false"><defs>`,
-    `<linearGradient id="${id('k')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s.sky[0]}"/><stop offset=".55" stop-color="${s.sky[1]}"/><stop offset="1" stop-color="${s.sky[2]}"/></linearGradient>`,
-    `<linearGradient id="${id('u')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s.sun[0]}"/><stop offset="1" stop-color="${s.sun[1]}"/></linearGradient>`,
-    `<linearGradient id="${id('w')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s.sea[0]}"/><stop offset="1" stop-color="${s.sea[1]}"/></linearGradient>`,
-    `<mask id="${id('m')}" maskUnits="userSpaceOnUse" x="-200" y="-200" width="400" height="400"><rect x="-200" y="-200" width="400" height="400" fill="#fff"/><g opacity="${s.stripe}">`
-  );
-  [10, 24, 37, 49, 60, 71, 82].forEach((y, i) => o.push(`<rect x="-200" y="${y}" width="400" height="${3 + i}" fill="#000"/>`));
-  o.push(
-    `</g></mask><filter id="${id('g')}" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`,
-    `<path id="${id('p')}" d="${PALM}"/></defs>`,
-    `<rect width="1280" height="214" fill="url(#${id('k')})"/>`
-  );
+/** Keeps buildings low under a striped sun so it stays in view. */
+const nearSun = ({ s }: Ctx, x: number, w: number) => !!s.stripe && x < s.cx + s.r + 6 && x + w > s.cx - s.r - 6;
 
-  if (s.stars) {
-    o.push(`<g fill="#fff" opacity="${s.stars}">`);
-    for (let i = 0; i < 70; i++)
-      o.push(
-        `<circle cx="${Math.round(rnd() * 1280)}" cy="${Math.round(rnd() * 150)}" r="${rnd() > 0.85 ? 1.6 : 0.9}" opacity="${(0.4 + rnd() * 0.6).toFixed(2)}"/>`
-      );
-    o.push('</g>');
-  } else {
-    for (let i = 0; i < 70 * 4; i++) rnd();
+function defs({ s, id }: Ctx): string {
+  const stripes = [10, 24, 37, 49, 60, 71, 82].map((y, i) => `<rect x="-200" y="${y}" width="400" height="${3 + i}" fill="#000"/>`).join('');
+  return (
+    `<defs><linearGradient id="${id('k')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s.sky[0]}"/><stop offset=".55" stop-color="${s.sky[1]}"/><stop offset="1" stop-color="${s.sky[2]}"/></linearGradient>` +
+    `<linearGradient id="${id('u')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s.sun[0]}"/><stop offset="1" stop-color="${s.sun[1]}"/></linearGradient>` +
+    `<linearGradient id="${id('w')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s.sea[0]}"/><stop offset="1" stop-color="${s.sea[1]}"/></linearGradient>` +
+    `<mask id="${id('m')}" maskUnits="userSpaceOnUse" x="-200" y="-200" width="400" height="400"><rect x="-200" y="-200" width="400" height="400" fill="#fff"/><g opacity="${s.stripe}">${stripes}</g></mask>` +
+    `<filter id="${id('g')}" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>` +
+    `<path id="${id('p')}" d="${PALM}"/></defs>`
+  );
+}
+
+/** Stars always draw from the random sequence, so the buildings stand in the same place in every scene. */
+function stars({ s, rnd }: Ctx): string {
+  const out: string[] = [];
+  for (let i = 0; i < 70; i++) {
+    const cx = Math.round(rnd() * 1280);
+    const cy = Math.round(rnd() * 150);
+    const r = rnd() > 0.85 ? 1.6 : 0.9;
+    const o = (0.4 + rnd() * 0.6).toFixed(2);
+    if (s.stars) out.push(`<circle cx="${cx}" cy="${cy}" r="${r}" opacity="${o}"/>`);
   }
+  return s.stars ? `<g fill="#fff" opacity="${s.stars}">${out.join('')}</g>` : '';
+}
 
-  // The stripe mask is drawn around the origin, so the sun moves as a group.
-  o.push(`<g transform="translate(${s.cx} ${s.cy})"><circle r="${s.r}" fill="url(#${id('u')})" mask="url(#${id('m')})"/></g>`);
+/** The stripe mask is drawn around the origin, so the sun moves as a group. */
+const sun = ({ s, id }: Ctx) => `<g transform="translate(${s.cx} ${s.cy})"><circle r="${s.r}" fill="url(#${id('u')})" mask="url(#${id('m')})"/></g>`;
 
-  o.push(`<g fill="${s.far}">`);
+function farSkyline(ctx: Ctx): string {
+  const out: string[] = [];
   for (let x = 0; x < 1280;) {
-    const w = 30 + Math.round(rnd() * 50);
-    let h = 30 + Math.round(rnd() * 70);
-    if (near(x, w)) h = Math.min(h, 22);
-    o.push(`<rect x="${x}" y="${214 - h}" width="${w}" height="${h}"/>`);
-    x += w + Math.round(rnd() * 6);
+    const w = 30 + Math.round(ctx.rnd() * 50);
+    let h = 30 + Math.round(ctx.rnd() * 70);
+    if (nearSun(ctx, x, w)) h = Math.min(h, 22);
+    out.push(`<rect x="${x}" y="${214 - h}" width="${w}" height="${h}"/>`);
+    x += w + Math.round(ctx.rnd() * 6);
   }
-  o.push(`</g><g fill="${s.mid}">`);
+  return `<g fill="${ctx.s.far}">${out.join('')}</g>`;
+}
 
+/** The near towers and their windows, lit at night (a few flicker). */
+function city(ctx: Ctx): string {
+  const { s, rnd, scene } = ctx;
+  const blocks: string[] = [];
   const wins: string[] = [];
   const win = (x: number, y: number) => {
     const lit = rnd() > 0.48;
-    const teal = rnd() < 0.12;
-    const c = teal ? '#7FF3E8' : scene === 'day' ? '#DDF2FF' : '#FFD47A';
+    const c = rnd() < 0.12 ? '#7FF3E8' : scene === 'day' ? '#DDF2FF' : '#FFD47A';
     const flick = lit && scene === 'night' && rnd() < 0.04 ? ' class="DuskSky-flicker"' : '';
     wins.push(`<rect x="${x}" y="${y}" width="3" height="4" fill="${c}" opacity="${lit ? s.win : s.winBase}"${flick}/>`);
   };
@@ -210,59 +212,94 @@ export function skySvg(scene: Scene, uid: string): string {
     const bw = 34 + Math.round(rnd() * 44);
     let bh = 44 + Math.round(rnd() * 110);
     if (x > 880 && x < 950) {
-      x = 952;
+      x = 952; // The landmark tower stands here.
       continue;
     }
-    if (near(x, bw)) bh = Math.min(bh, 34);
-    o.push(`<rect x="${x}" y="${214 - bh}" width="${bw}" height="${bh}"/>`);
+    if (nearSun(ctx, x, bw)) bh = Math.min(bh, 34);
+    blocks.push(`<rect x="${x}" y="${214 - bh}" width="${bw}" height="${bh}"/>`);
     for (let wx = x + 5; wx < x + bw - 5; wx += 8) for (let wy = 214 - bh + 7; wy < 208; wy += 10) win(wx, wy);
     x += bw + 4 + Math.round(rnd() * 14);
   }
-  o.push(
-    '<rect x="902" y="26" width="42" height="188"/><rect x="912" y="12" width="22" height="16"/><rect x="921" y="-10" width="4" height="24"/></g>'
+  blocks.push(
+    '<rect x="902" y="26" width="42" height="188"/><rect x="912" y="12" width="22" height="16"/><rect x="921" y="-10" width="4" height="24"/>'
   );
   for (let ty = 34; ty < 206; ty += 10) for (let tx = 908; tx < 940; tx += 8) win(tx, ty);
-  o.push(`<g>${wins.join('')}</g>`);
+  return `<g fill="${s.mid}">${blocks.join('')}</g><g>${wins.join('')}</g>`;
+}
 
-  if (s.neon) {
-    o.push(
-      `<g class="DuskSky-neon" opacity="${s.neon}" filter="url(#${id('g')})" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">`,
-      '<path d="M906 60h34M906 100h34" stroke="#3FF0E0"/><circle cx="923" cy="20" r="3" fill="#FF3B6B" stroke="none"/>',
-      '<path d="M214 150l10-10 10 10 10-10 10 10 10-10 10 10" stroke="#FF4F8B"/>',
+const neon = ({ s, id }: Ctx) =>
+  s.neon
+    ? `<g class="DuskSky-neon" opacity="${s.neon}" filter="url(#${id('g')})" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">` +
+      '<path d="M906 60h34M906 100h34" stroke="#3FF0E0"/><circle cx="923" cy="20" r="3" fill="#FF3B6B" stroke="none"/>' +
+      '<path d="M214 150l10-10 10 10 10-10 10 10 10-10 10 10" stroke="#FF4F8B"/>' +
       '<rect x="1196" y="150" width="46" height="18" rx="9" stroke="#FFC24B"/><path d="M1110 168v-26m-8 8l8-8 8 8" stroke="#9D7BFF"/></g>'
-    );
-  }
+    : '';
 
-  o.push(`<rect y="214" width="1280" height="106" fill="url(#${id('w')})"/><g fill="${s.sun[1]}" opacity="${s.refl}">`);
+/** The bay: the sun's reflection and a shimmer. */
+function water({ s, rnd, id }: Ctx): string {
+  const refl: string[] = [];
   for (let k = 0; k < 9; k++) {
     const rw = Math.max(14, s.r * 1.6 - k * 14);
-    o.push(`<rect x="${(s.cx - rw / 2 + (rnd() - 0.5) * 10).toFixed(1)}" y="${220 + k * 9}" width="${rw}" height="2.5" rx="1.25"/>`);
+    refl.push(`<rect x="${(s.cx - rw / 2 + (rnd() - 0.5) * 10).toFixed(1)}" y="${220 + k * 9}" width="${rw}" height="2.5" rx="1.25"/>`);
   }
-  o.push(`</g><g stroke="${s.shim}" stroke-width="1.5" opacity=".35">`);
+  const shim: string[] = [];
   for (let j = 0; j < 26; j++) {
     const lx = Math.round(rnd() * 1260);
     const y = 262 + Math.round(rnd() * 34);
-    o.push(`<line x1="${lx}" y1="${y}" x2="${lx + 10 + Math.round(rnd() * 40)}" y2="${y}"/>`);
+    shim.push(`<line x1="${lx}" y1="${y}" x2="${lx + 10 + Math.round(rnd() * 40)}" y2="${y}"/>`);
   }
-  o.push(
-    `</g><path d="M0 252C320 244 640 240 1280 236V242C640 246 320 250 0 258Z" fill="${s.deck}"/>`,
-    `<g fill="${s.deck}"><rect x="120" y="252" width="5" height="22"/><rect x="400" y="246" width="5" height="22"/><rect x="680" y="242" width="5" height="22"/><rect x="960" y="239" width="5" height="22"/><rect x="1220" y="237" width="5" height="22"/></g>`
+  return (
+    `<rect y="214" width="1280" height="106" fill="url(#${id('w')})"/>` +
+    `<g fill="${s.sun[1]}" opacity="${s.refl}">${refl.join('')}</g>` +
+    `<g stroke="${s.shim}" stroke-width="1.5" opacity=".35">${shim.join('')}</g>`
   );
-  if (s.trails) {
-    o.push(
-      `<g class="DuskSky-trails" opacity="${s.trails}" filter="url(#${id('g')})" fill="none" stroke-width="1.6">`,
-      '<path d="M0 251C320 243 640 239 1280 235" stroke="#FF3B5C" stroke-dasharray="26 12"/>',
-      '<path d="M0 255C320 247 640 243 1280 239" stroke="#FFF1C4" stroke-dasharray="14 18"/></g>'
-    );
-  }
-  o.push(
-    `<path d="M0 300C200 288 360 296 520 304C760 316 1040 290 1280 296V320H0Z" fill="${s.palm}"/><g fill="${s.palm}">`,
-    `<use href="#${id('p')}" transform="translate(70 312) scale(1.05)"/>`,
-    `<use href="#${id('p')}" transform="translate(140 316) scale(.8) rotate(6)"/>`,
-    `<use href="#${id('p')}" transform="translate(430 314) scale(.55) rotate(-4)"/>`,
-    `<use href="#${id('p')}" transform="translate(1150 312) scale(-1 1)"/>`,
-    `<use href="#${id('p')}" transform="translate(1235 318) scale(-.78 .78)"/></g></svg>`
-  );
+}
 
-  return o.join('');
+/** The causeway across the bay, with traffic after dark. */
+const causeway = ({ s, id }: Ctx) =>
+  `<path d="M0 252C320 244 640 240 1280 236V242C640 246 320 250 0 258Z" fill="${s.deck}"/>` +
+  `<g fill="${s.deck}">${[120, 400, 680, 960, 1220].map((x, i) => `<rect x="${x}" y="${[252, 246, 242, 239, 237][i]}" width="5" height="22"/>`).join('')}</g>` +
+  (s.trails
+    ? `<g class="DuskSky-trails" opacity="${s.trails}" filter="url(#${id('g')})" fill="none" stroke-width="1.6">` +
+      '<path d="M0 251C320 243 640 239 1280 235" stroke="#FF3B5C" stroke-dasharray="26 12"/>' +
+      '<path d="M0 255C320 247 640 243 1280 239" stroke="#FFF1C4" stroke-dasharray="14 18"/></g>'
+    : '');
+
+const PALMS = [
+  'translate(70 312) scale(1.05)',
+  'translate(140 316) scale(.8) rotate(6)',
+  'translate(430 314) scale(.55) rotate(-4)',
+  'translate(1150 312) scale(-1 1)',
+  'translate(1235 318) scale(-.78 .78)',
+];
+
+const shore = ({ s, id }: Ctx) =>
+  `<path d="M0 300C200 288 360 296 520 304C760 316 1040 290 1280 296V320H0Z" fill="${s.palm}"/>` +
+  `<g fill="${s.palm}">${PALMS.map((tr) => `<use href="#${id('p')}" transform="${tr}"/>`).join('')}</g>`;
+
+/** The illustration for one scene. Deterministic (seeded), so it never jumps between redraws. */
+export function skySvg(scene: Scene, uid: string): string {
+  let seed = 7;
+  const ctx: Ctx = {
+    scene,
+    s: P[scene],
+    rnd: () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646,
+    id: (name) => `${name}-${uid}`,
+  };
+
+  // Layer order is paint order, and the random sequence follows it.
+  return (
+    '<svg class="DuskSky-art" viewBox="0 0 1280 320" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">' +
+    defs(ctx) +
+    `<rect width="1280" height="214" fill="url(#${ctx.id('k')})"/>` +
+    stars(ctx) +
+    sun(ctx) +
+    farSkyline(ctx) +
+    city(ctx) +
+    neon(ctx) +
+    water(ctx) +
+    causeway(ctx) +
+    shore(ctx) +
+    '</svg>'
+  );
 }

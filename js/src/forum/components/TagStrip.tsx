@@ -2,17 +2,21 @@ import app from 'flarum/forum/app';
 import Component from 'flarum/common/Component';
 import Link from 'flarum/common/components/Link';
 import Icon from 'flarum/common/components/Icon';
+import type Tag from 'ext:flarum/tags/common/models/Tag';
 import { isNew } from '../tagsNew';
 import { t } from '../util';
 
-/** Up to four primary tags above the discussion list, glowing when something new was posted. */
+/** Tiles in the strip: one row on desktop (the grid has four columns). */
+const TILES = 4;
+
+/** The first primary tags above the discussion list, glowing when something new was posted. */
 export default class TagStrip extends Component {
   view() {
     const tags = app.store
-      .all<any>('tags')
-      .filter((tag) => tag.position() !== null && !tag.isChild() && !tag.isHidden?.())
-      .sort((a, b) => a.position() - b.position())
-      .slice(0, 4);
+      .all<Tag>('tags')
+      .filter((tag) => tag.position() !== null && !tag.isChild() && !tag.isHidden())
+      .sort((a, b) => (a.position() ?? 0) - (b.position() ?? 0))
+      .slice(0, TILES);
     if (!tags.length) return null;
 
     return (

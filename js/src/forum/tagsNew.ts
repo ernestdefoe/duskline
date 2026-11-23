@@ -1,4 +1,5 @@
 import app from 'flarum/forum/app';
+import type Tag from 'ext:flarum/tags/common/models/Tag';
 
 /*
  * "New since your last visit", with no query: a visit ends after 30 quiet
@@ -21,8 +22,8 @@ function lastVisit(): number {
   return (since = seen.prev);
 }
 
-export function isNew(tag: any): boolean {
-  const posted = tag.lastPostedAt?.();
+export function isNew(tag: Tag): boolean {
+  const posted = tag.lastPostedAt();
   if (!posted) return false;
   const read = app.session.user?.markedAllAsReadAt?.();
   return posted.getTime() > Math.max(lastVisit(), read ? read.getTime() : 0);

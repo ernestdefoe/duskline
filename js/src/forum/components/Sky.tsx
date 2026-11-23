@@ -2,6 +2,7 @@ import Component from 'flarum/common/Component';
 import { skySvg, type Scene } from '../../common/sky';
 import { currentScene } from '../util';
 
+// One SVG string per scene and place. Places are fixed names (hero, card), so this holds at most 5 × places.
 const memo = new Map<string, string>();
 
 /** The illustrated sky. One SVG string per scene and place, built once. */

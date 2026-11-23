@@ -1,9 +1,8 @@
 import app from 'flarum/forum/app';
 import Modal from 'flarum/common/components/Modal';
-import { SCENES, sceneAt, type Scene } from '../../common/sky';
+import { sceneAt } from '../../common/sky';
+import { ACCENTS, SCENES, type Scene } from '../../common/look';
 import { cfg, device, html, t, type DevicePrefs } from '../util';
-
-const ACCENTS = ['coral', 'magenta', 'teal', 'amber', 'ice'];
 
 type Choice = { value: string; label: string; swatch?: string };
 
@@ -44,7 +43,7 @@ export default class PaintShopModal extends Modal {
           ? this.group(
               'profile',
               [{ value: 'clock', label: String(t('paint.profile.visitor')) }, ...SCENES.map((s) => ({ value: s, label: String(t(`scene.${s}`)) }))],
-              user!.preferences()?.duskSky || 'clock'
+              String(user!.preferences()?.duskSky || 'clock')
             )
           : null}
         {this.group(

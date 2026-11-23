@@ -26,9 +26,6 @@ final class ActiveTheme
 {
     public const ID = 'ernestdefoe-duskline';
 
-    /** @var \WeakMap<ServerRequestInterface, bool>|null One answer per request. */
-    private static ?\WeakMap $answers = null;
-
     public function __construct(protected Container $container, protected LoggerInterface $logger)
     {
     }
@@ -41,13 +38,7 @@ final class ActiveTheme
             return ! $this->container->bound(BespokeProvider::BINDING);
         }
 
-        if (! $request) {
-            return true;
-        }
-
-        self::$answers ??= new \WeakMap();
-
-        return self::$answers[$request] ??= $this->ask($request);
+        return ! $request || $this->ask($request);
     }
 
     private function ask(ServerRequestInterface $request): bool
@@ -56,9 +47,10 @@ final class ActiveTheme
             $cookie = $request->getCookieParams()['wardrobe_theme'] ?? null;
             $chosen = ($this->container->make(WardrobeProvider::BINDING))(RequestUtil::getActor($request), is_string($cookie) ? $cookie : null);
         } catch (\Throwable $e) {
+            // Wardrobe could not say: stay off rather than style a page the visitor chose another theme for.
             $this->logger->warning('Duskline: Wardrobe could not resolve the visitor\'s theme: '.$e->getMessage(), ['exception' => $e]);
 
-            return true;
+            return false;
         }
 
         return $chosen === self::ID || ($chosen === null && ! $this->container->bound(BespokeProvider::BINDING));

@@ -1,8 +1,9 @@
 import app from 'flarum/admin/app';
 import Extend from 'flarum/common/extenders';
+import { ACCENTS, SCENES } from '../common/look';
 
 const t = (key: string) => app.translator.trans(`ernestdefoe-duskline.admin.${key}`);
-const scenes = () => Object.fromEntries(['dawn', 'day', 'golden', 'sunset', 'night'].map((s) => [s, t(`scene.${s}`)]));
+const scenes = () => Object.fromEntries(SCENES.map((s) => [s, t(`scene.${s}`)]));
 
 export default [
   new Extend.Admin()
@@ -44,7 +45,7 @@ export default [
       type: 'select',
       label: t('accent.label'),
       help: t('accent.help'),
-      options: Object.fromEntries(['coral', 'magenta', 'teal', 'amber', 'ice'].map((a) => [a, t(`accent.${a}`)])),
+      options: Object.fromEntries(ACCENTS.map((a) => [a, t(`accent.${a}`)])),
     }))
     .setting(() => ({
       setting: 'ernestdefoe-duskline.tag_strip',

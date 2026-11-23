@@ -60,7 +60,12 @@ final class Look
         return preg_match('#^https?://#i', $url) && filter_var($url, FILTER_VALIDATE_URL) ? $url : '';
     }
 
-    /** @param list<string> $allowed */
+    /**
+     * The value if it is on the list, else the fallback. The fallbacks used above
+     * only stand in for a stored value that is not on the list.
+     *
+     * @param list<string> $allowed
+     */
     public static function pick(mixed $value, array $allowed, ?string $fallback): ?string
     {
         return is_string($value) && in_array($value, $allowed, true) ? $value : $fallback;

@@ -9,6 +9,7 @@
 
 namespace ErnestDefoe\Duskline\Integration;
 
+use Ernestdefoe\Wardrobe\ThemeRegistry;
 use Flarum\Foundation\AbstractServiceProvider;
 use Flarum\User\User;
 
@@ -22,6 +23,6 @@ class WardrobeProvider extends AbstractServiceProvider
 
     public function register(): void
     {
-        $this->container->bind(self::BINDING, fn ($container) => fn (User $actor, ?string $cookie): ?string => $container->make('Ernestdefoe\\Wardrobe\\ThemeRegistry')->resolve($actor, $cookie));
+        $this->container->bind(self::BINDING, fn ($container) => fn (User $actor, ?string $cookie): ?string => $container->make(ThemeRegistry::class)->resolve($actor, $cookie));
     }
 }
