@@ -1,7 +1,7 @@
 import app from 'flarum/forum/app';
 import { isScene, sceneAt, type Scene } from '../common/sky';
 
-export type RadarUser = { id: number; username: string; displayName: string; avatarUrl: string | null };
+export type RadarUser = { id: number; username: string; slug: string; displayName: string; avatarUrl: string | null };
 
 export type Config = {
   hero: 'clock' | 'fixed' | 'image' | 'video' | 'off';
@@ -78,32 +78,3 @@ export function startDiscussion() {
     app.modal.show(() => import('flarum/forum/components/LogInModal'));
   }
 }
-
-/*
- * Renown's level curve and rank names (the same formula as Renown's own
- * common/curve.ts), read only when a user carries Renown's attributes.
- */
-const xpFor = (level: number) => (level <= 1 ? 0 : Math.round((30 * Math.pow(Math.min(level, 100) - 1, 1.75)) / 10) * 10);
-
-export type Standing = { level: number; xp: number; rank: number; into: number; step: number; pct: number; prestige: number };
-
-export function standing(user: any): Standing | null {
-  const level = user?.attribute?.('renownLevel');
-  if (typeof level !== 'number') return null;
-  const xp = user.attribute('renownXp') || 0;
-  const from = xpFor(level);
-  const step = level >= 100 ? 0 : xpFor(level + 1) - from;
-  const into = Math.max(0, xp - from);
-  return {
-    level,
-    xp,
-    rank: Math.floor((Math.max(1, level) - 1) / 5) + 1,
-    into,
-    step,
-    pct: step ? Math.min(100, Math.round((into / step) * 100)) : 100,
-    prestige: user.attribute('renownPrestige') || 0,
-  };
-}
-
-export const rankName = (rank: number): string =>
-  app.forum.attribute<any>('renown')?.ranks?.[rank - 1]?.name || String(app.translator.trans(`ernestdefoe-renown.lib.ranks.${rank}`, {}, true));

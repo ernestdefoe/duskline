@@ -39,21 +39,8 @@ class ForumFields
                     'profileSky' => $this->look->on('profile_sky'),
                     'cards' => $this->look->on('player_cards'),
                     'hud' => $this->look->on('hud'),
-                    'radar' => $this->look->on('radar') ? $this->radar($context) : null,
+                    'radar' => $this->look->on('radar') ? $this->radar->for($context->getActor()) : null,
                 ] : null),
         ];
-    }
-
-    /**
-     * Everyone sees how many are online; who they are only for visitors
-     * allowed to search the member list (core's own gate for listing members).
-     *
-     * @return array{count: int, users: list<array<string, mixed>>}
-     */
-    private function radar(Context $context): array
-    {
-        $now = $this->radar->now();
-
-        return $context->getActor()->can('searchUsers') ? $now : ['count' => $now['count'], 'users' => []];
     }
 }

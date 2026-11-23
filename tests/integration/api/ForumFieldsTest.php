@@ -19,8 +19,8 @@ class ForumFieldsTest extends DusklineTestCase
     {
         $radar = $this->forumConfig()['radar'];
 
-        // Members 2 and 3 were seen in the last five minutes; 4 an hour ago.
-        $this->assertSame(2, $radar['count']);
+        // Members 2 and 3 were seen in the last five minutes, 4 an hour ago; 3 hides it.
+        $this->assertSame(1, $radar['count']);
         $this->assertSame([], $radar['users']);
     }
 
@@ -30,7 +30,18 @@ class ForumFieldsTest extends DusklineTestCase
         $users = $this->forumConfig(2)['radar']['users'];
 
         $this->assertSame(['member2'], array_column($users, 'username'));
-        $this->assertSame(['id', 'username', 'displayName', 'avatarUrl'], array_keys($users[0]));
+        $this->assertSame(['id', 'username', 'slug', 'displayName', 'avatarUrl'], array_keys($users[0]));
+    }
+
+    #[Test]
+    public function a_private_forum_tells_guests_nothing(): void
+    {
+        // A private forum: guests lose viewForum, members keep it.
+        $this->database()->table('group_permission')->where('permission', 'viewForum')->where('group_id', 2)->delete();
+        $this->database()->table('group_permission')->insert(['permission' => 'viewForum', 'group_id' => 3]);
+
+        $this->assertNull($this->forumConfig()['radar']);
+        $this->assertSame(1, $this->forumConfig(2)['radar']['count']);
     }
 
     #[Test]

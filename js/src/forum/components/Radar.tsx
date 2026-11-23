@@ -4,7 +4,7 @@ import Link from 'flarum/common/components/Link';
 import stringToColor from 'flarum/common/utils/stringToColor';
 import { cfg, t } from '../util';
 
-// Where the dots sit: rings at 34% and 66% of the radius, spread around.
+// Where the dots sit (percent of the scope), spread over both rings. One spot per dot (Radar::DOTS).
 const SPOTS = [
   [62, 14],
   [24, 28],
@@ -39,7 +39,7 @@ export default class Radar extends Component {
           {shown.map((u, i) => (
             <Link
               className="DuskRadar-dot"
-              href={app.route('user', { username: u.username })}
+              href={app.route('user', { username: u.slug })}
               title={u.displayName}
               style={{ left: SPOTS[i][0] + '%', top: SPOTS[i][1] + '%', '--dot': stringToColor(u.username) }}
             >
