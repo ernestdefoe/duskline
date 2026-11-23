@@ -4,9 +4,9 @@
  * picks the first scene before paint.
  */
 
-export type Scene = 'dawn' | 'day' | 'golden' | 'sunset' | 'night';
+import { SCENES, type Scene } from './look';
 
-export const SCENES: Scene[] = ['dawn', 'day', 'golden', 'sunset', 'night'];
+export { SCENES, type Scene };
 
 export function sceneAt(date: Date = new Date()): Scene {
   const t = date.getHours() + date.getMinutes() / 60;
