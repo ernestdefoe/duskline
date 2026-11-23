@@ -55,6 +55,7 @@ ernestdefoe-duskline:
       title: On the radar
       count: "{count, plural, one {# online} other {# online}}"
       label: "{count, plural, one {# member online} other {# members online}}"
+      empty: All quiet right now
     tiles:
       label: Tags
       new: New

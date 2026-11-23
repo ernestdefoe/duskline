@@ -16,8 +16,9 @@ use Illuminate\Contracts\Cache\Repository as Cache;
 
 /**
  * Who is online, for the radar widget. Only members who show their online
- * status are counted or shown. The shared part (a count and up to DOTS ids)
- * is cached for CACHE_SECONDS; who an actor may see is decided per request.
+ * status are counted or shown. The shared part (the ids of those members,
+ * newest first) is cached for CACHE_SECONDS; the viewer is added on top (they
+ * are online by definition), and who they may see is decided per request.
  */
 final class Radar
 {
@@ -36,11 +37,10 @@ final class Radar
     {
     }
 
-    /** @return array{count: int, ids: list<int>} */
+    /** @return list<int> ids of members online who show it, newest first */
     public function shared(): array
     {
         return $this->cache->remember('duskline.radar', self::CACHE_SECONDS, function (): array {
-            $count = 0;
             $ids = [];
             $recent = User::query()
                 ->where('last_seen_at', '>', Carbon::now()->subMinutes(self::WINDOW_MINUTES))
@@ -50,16 +50,12 @@ final class Radar
                 ->get(['id', 'preferences']);
 
             foreach ($recent as $user) {
-                if (! $user->getPreference('discloseOnline')) {
-                    continue;
-                }
-                $count++;
-                if (count($ids) < self::DOTS) {
+                if ($user->getPreference('discloseOnline')) {
                     $ids[] = (int) $user->id;
                 }
             }
 
-            return ['count' => $count, 'ids' => $ids];
+            return $ids;
         });
     }
 
@@ -76,13 +72,20 @@ final class Radar
             return null;
         }
 
-        $shared = $this->shared();
-        $users = [];
+        $ids = $this->shared();
 
-        if ($shared['ids'] && $actor->can('searchUsers')) {
-            $found = User::whereVisibleTo($actor)->whereIn('id', $shared['ids'])->get()->keyBy('id');
+        // The viewer is here right now, whatever the cache says.
+        if (! $actor->isGuest() && $actor->getPreference('discloseOnline') && ! in_array((int) $actor->id, $ids, true)) {
+            array_unshift($ids, (int) $actor->id);
+        }
+
+        $users = [];
+        $dots = array_slice($ids, 0, self::DOTS);
+
+        if ($dots && $actor->can('searchUsers')) {
+            $found = User::whereVisibleTo($actor)->whereIn('id', $dots)->get()->keyBy('id');
             $driver = $this->slugs->forResource(User::class);
-            foreach ($shared['ids'] as $id) {
+            foreach ($dots as $id) {
                 if ($user = $found->get($id)) {
                     $users[] = [
                         'id' => $id,
@@ -95,6 +98,6 @@ final class Radar
             }
         }
 
-        return ['count' => $shared['count'], 'users' => $users];
+        return ['count' => count($ids), 'users' => $users];
     }
 }

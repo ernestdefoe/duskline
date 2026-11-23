@@ -34,6 +34,18 @@ class ForumFieldsTest extends DusklineTestCase
     }
 
     #[Test]
+    public function the_viewer_counts_as_online_unless_they_hide_it(): void
+    {
+        // Member 3 is online but hides it: not counted, even when viewing.
+        $this->assertSame(1, $this->forumConfig(3)['radar']['count']);
+
+        // Member 4 was last seen an hour ago (not in the cached answer), but is here now.
+        $radar = $this->forumConfig(4)['radar'];
+        $this->assertSame(2, $radar['count']);
+        $this->assertSame(['member4', 'member2'], array_column($radar['users'], 'username'));
+    }
+
+    #[Test]
     public function a_private_forum_tells_guests_nothing(): void
     {
         // A private forum: guests lose viewForum, members keep it.

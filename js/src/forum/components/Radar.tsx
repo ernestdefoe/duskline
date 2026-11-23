@@ -28,6 +28,19 @@ export default class Radar extends Component {
     const shown = radar.users.slice(0, SPOTS.length);
     const more = radar.count - shown.length;
 
+    // No faces to place (nobody here, or a visitor who may not see who): a calm one-line version.
+    if (!shown.length) {
+      return (
+        <div className="DuskRadar DuskRadar--quiet">
+          <span className="DuskRadar-mini" aria-hidden="true" />
+          <div>
+            <span className="DuskRadar-title">{t('radar.title')}</span>
+            <span className="DuskRadar-note">{radar.count ? t('radar.label', { count: radar.count }) : t('radar.empty')}</span>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="DuskRadar">
         <div className="DuskRadar-head">
@@ -41,7 +54,7 @@ export default class Radar extends Component {
               className="DuskRadar-dot"
               href={app.route('user', { username: u.slug })}
               title={u.displayName}
-              style={{ left: SPOTS[i][0] + '%', top: SPOTS[i][1] + '%', '--dot': stringToColor(u.username) }}
+              style={{ left: SPOTS[i][0] + '%', top: SPOTS[i][1] + '%', '--dot': '#' + stringToColor(u.username) }}
             >
               {u.avatarUrl ? (
                 <img src={u.avatarUrl} alt={u.displayName} loading="lazy" />
