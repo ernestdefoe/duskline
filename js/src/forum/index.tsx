@@ -23,11 +23,11 @@ import { cfg, currentScene, followClock, t } from './util';
 import { standing } from './renown';
 import { isNew } from './tagsNew';
 import { isScene } from '../common/sky';
+import heroes from './heroes';
 
 type Vnode = Mithril.Vnode<Record<string, unknown>>;
 type Children = Mithril.Children;
-/** IndexPage as flarum/tags extends it. */
-type IndexPageLike = IndexPage & { currentTag?: () => Tag | undefined };
+type IndexPageLike = IndexPage;
 type Card = UserCard & { attrs: { user: User; className?: string } };
 type CommentPostLike = CommentPost & { attrs: { post: Post } };
 
@@ -35,6 +35,8 @@ app.initializers.add('ernestdefoe-duskline', () => {
   // Inert unless the server stamped this page for Duskline (Wardrobe/Bespoke may pick another theme).
   // 🚨 app.forum is not loaded yet while initializers run: every hook reads cfg() when it renders.
   if (!document.documentElement.hasAttribute('data-duskline')) return;
+
+  heroes();
 
   // The clock and the phone bar start with the first page, once the forum's data is in.
   extend('flarum/common/components/Page', 'oninit', () => {
@@ -46,13 +48,13 @@ app.initializers.add('ernestdefoe-duskline', () => {
   // The index hero (tag pages keep the Tags hero).
   override('flarum/forum/components/IndexPage', 'hero', function (this: IndexPageLike, original: () => Children) {
     const c = cfg();
-    if (!c || c.hero === 'off' || this.currentTag?.()) return original();
+    if (!c || c.hero === 'off' || app.currentTag?.()) return original();
     return <DuskHero />;
   });
 
   // Tag tiles above the discussion list, on the unfiltered index only.
   extend('flarum/forum/components/IndexPage', 'contentItems', function (this: IndexPageLike, items: ItemList<Children>) {
-    if (cfg()?.tiles !== 'top' || this.currentTag?.() || !('flarum-tags' in flarum.extensions)) return;
+    if (cfg()?.tiles !== 'top' || app.currentTag?.() || !('flarum-tags' in flarum.extensions)) return;
     if (m.route.param('q')) return;
     items.add('duskTiles', <TagStrip />, 110);
   });

@@ -1,4 +1,5 @@
 import app from 'flarum/forum/app';
+import extractText from 'flarum/common/utils/extractText';
 import { isScene, sceneAt, type Scene } from '../common/sky';
 
 export type RadarUser = { id: number; username: string; slug: string; displayName: string; avatarUrl: string | null };
@@ -23,7 +24,9 @@ export const html = document.documentElement;
 /** The admin's choices; null when this visitor is on another theme (Wardrobe/Bespoke). */
 export const cfg = (): Config | null => (html.hasAttribute('data-duskline') && app.forum?.attribute<Config>('duskline')) || null;
 
-export const t = (key: string, params: Record<string, unknown> = {}) => app.translator.trans(`ernestdefoe-duskline.forum.${key}`, params);
+/** A translated string as plain text (also safe in attributes: no array joined with commas). */
+export const t = (key: string, params: Record<string, unknown> = {}): string =>
+  extractText(app.translator.trans(`ernestdefoe-duskline.forum.${key}`, params));
 
 export const motionOk = () => !window.matchMedia('(prefers-reduced-motion: reduce)').matches && !html.hasAttribute('data-dusk-motion');
 
