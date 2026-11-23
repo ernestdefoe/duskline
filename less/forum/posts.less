@@ -42,7 +42,15 @@ html[data-duskline] {
     position: relative;
   }
 
+  // Renown's chip is taller than a line of text: center every header item on the
+  // line, so the chip, the name and the time share one middle (desktop; phones
+  // lay the header out as a flex row).
+  .Post-header > ul > li { vertical-align: middle; }
+  .UserCard-info > li, .RenownCardInfo { vertical-align: middle; }
+  .RenownCardInfo { display: inline-flex; align-items: center; gap: 6px; }
+
   .RenownPostBadge {
+    vertical-align: middle;
     display: inline-flex;
     align-items: center;
     height: 24px;
