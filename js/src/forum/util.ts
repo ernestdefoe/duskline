@@ -1,0 +1,109 @@
+import app from 'flarum/forum/app';
+import { isScene, sceneAt, type Scene } from '../common/sky';
+
+export type RadarUser = { id: number; username: string; displayName: string; avatarUrl: string | null };
+
+export type Config = {
+  hero: 'clock' | 'fixed' | 'image' | 'video' | 'off';
+  scene: Scene;
+  image: string;
+  video: string;
+  tiles: 'top' | 'off';
+  paint: boolean;
+  profileSky: boolean;
+  cards: boolean;
+  hud: boolean;
+  radar: { count: number; users: RadarUser[] } | null;
+};
+
+export type DevicePrefs = { accent?: string; sky?: string; density?: string; motion?: string };
+
+export const html = document.documentElement;
+
+/** The admin's choices; null when this visitor is on another theme (Wardrobe/Bespoke). */
+export const cfg = (): Config | null => (html.hasAttribute('data-duskline') && app.forum?.attribute<Config>('duskline')) || null;
+
+export const t = (key: string, params: Record<string, unknown> = {}) => app.translator.trans(`ernestdefoe-duskline.forum.${key}`, params);
+
+export const motionOk = () => !window.matchMedia('(prefers-reduced-motion: reduce)').matches && !html.hasAttribute('data-dusk-motion');
+
+export const saveData = () => !!(navigator as any).connection?.saveData;
+
+export const device = {
+  get(): DevicePrefs {
+    try {
+      return JSON.parse(localStorage.getItem('duskline') || '{}') || {};
+    } catch {
+      return {};
+    }
+  },
+  set(prefs: DevicePrefs) {
+    try {
+      localStorage.setItem('duskline', JSON.stringify(prefs));
+    } catch {
+      // Private mode: the choice lasts for this page only.
+    }
+  },
+};
+
+/** The sky on screen now (the head script set it before paint). */
+export const currentScene = (): Scene => {
+  const value = html.getAttribute('data-dusk-sky');
+  return isScene(value) ? value : sceneAt();
+};
+
+let clock: number | undefined;
+
+/** Follow the visitor's clock: re-check every 5 minutes and when the tab comes back. */
+export function followClock() {
+  if (clock) return;
+  const tick = () => {
+    const c = cfg();
+    if (!c || c.hero === 'fixed' || isScene(device.get().sky)) return;
+    const scene = sceneAt();
+    if (scene !== currentScene()) {
+      html.setAttribute('data-dusk-sky', scene);
+      m.redraw();
+    }
+  };
+  clock = window.setInterval(tick, 5 * 60 * 1000);
+  document.addEventListener('visibilitychange', () => document.hidden || tick());
+}
+
+/** Start a discussion the way the index sidebar does (so other extensions' hooks still run). */
+export function startDiscussion() {
+  if (app.session.user) {
+    app.composer.load(() => import('flarum/forum/components/DiscussionComposer'), { user: app.session.user }).then(() => app.composer.show());
+  } else {
+    app.modal.show(() => import('flarum/forum/components/LogInModal'));
+  }
+}
+
+/*
+ * Renown's level curve and rank names (the same formula as Renown's own
+ * common/curve.ts), read only when a user carries Renown's attributes.
+ */
+const xpFor = (level: number) => (level <= 1 ? 0 : Math.round((30 * Math.pow(Math.min(level, 100) - 1, 1.75)) / 10) * 10);
+
+export type Standing = { level: number; xp: number; rank: number; into: number; step: number; pct: number; prestige: number };
+
+export function standing(user: any): Standing | null {
+  const level = user?.attribute?.('renownLevel');
+  if (typeof level !== 'number') return null;
+  const xp = user.attribute('renownXp') || 0;
+  const from = xpFor(level);
+  const step = level >= 100 ? 0 : xpFor(level + 1) - from;
+  const into = Math.max(0, xp - from);
+  return {
+    level,
+    xp,
+    rank: Math.floor((Math.max(1, level) - 1) / 5) + 1,
+    into,
+    step,
+    pct: step ? Math.min(100, Math.round((into / step) * 100)) : 100,
+    prestige: user.attribute('renownPrestige') || 0,
+  };
+}
+
+export const rankName = (rank: number): string =>
+  app.forum.attribute<any>('renown')?.ranks?.[rank - 1]?.name || String(app.translator.trans(`ernestdefoe-renown.lib.ranks.${rank}`, {}, true));
