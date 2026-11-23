@@ -19,7 +19,7 @@ import RankRoad from './components/RankRoad';
 import HudBar from './components/HudBar';
 import Sky from './components/Sky';
 import PaintShopModal from './components/PaintShopModal';
-import { cfg, currentScene, followClock, t } from './util';
+import { addClass, cfg, currentScene, followClock, mergeStyle, t } from './util';
 import { standing } from './renown';
 import { isNew } from './tagsNew';
 import { isScene } from '../common/sky';
@@ -67,16 +67,16 @@ app.initializers.add('ernestdefoe-duskline', () => {
 
   // The Tags page: the same unread glow on its tiles.
   extend('ext:flarum/tags/forum/components/TagsPage', 'tagTileView', function (this: TagsPage, vdom: Vnode, tag: Tag) {
-    if (vdom?.attrs && isNew(tag)) vdom.attrs.className = (vdom.attrs.className || '') + ' DuskTile--new';
+    if (vdom?.attrs && isNew(tag)) addClass(vdom.attrs, 'DuskTile--new');
   });
 
   // Player cards: an XP ring and level pill around each post author's avatar (Renown).
   const ring = (vdom: Vnode, user: User | null | undefined | false) => {
     const s = cfg()?.cards && standing(user);
     if (!s || !vdom?.attrs) return;
-    vdom.attrs.className = (vdom.attrs.className || '') + ' DuskAvatar';
+    addClass(vdom.attrs, 'DuskAvatar');
     vdom.attrs['data-level'] = s.level;
-    vdom.attrs.style = { ...((vdom.attrs.style as object) || {}), '--dusk-xp': s.pct + '%', '--dusk-level': s.level };
+    mergeStyle(vdom.attrs, { '--dusk-xp': s.pct + '%', '--dusk-level': s.level });
   };
   extend('flarum/forum/components/CommentPost', 'avatar', function (this: CommentPostLike, vdom: Vnode) {
     ring(vdom, this.attrs.post.user());
@@ -85,7 +85,7 @@ app.initializers.add('ernestdefoe-duskline', () => {
   extend('flarum/forum/components/CommentPost', 'elementAttrs', function (this: CommentPostLike, attrs: Record<string, unknown>) {
     const s = cfg()?.cards && standing(this.attrs.post.user());
     if (!s) return;
-    attrs.style = { ...((attrs.style as object) || {}), '--dusk-xp': s.pct + '%' };
+    mergeStyle(attrs, { '--dusk-xp': s.pct + '%' });
     attrs['data-dusk-level'] = s.level;
   });
   // On a profile the avatar may be the avatar editor, so it is wrapped rather than tagged.
@@ -103,7 +103,7 @@ app.initializers.add('ernestdefoe-duskline', () => {
   extend('flarum/forum/components/UserCard', 'view', function (this: Card, vdom: Vnode) {
     if (!String(this.attrs.className || '').includes('UserHero') || !Array.isArray(vdom?.children)) return;
     const own = this.attrs.user.attribute<string | null>('duskSky');
-    vdom.attrs.className += ' DuskCard';
+    addClass(vdom.attrs, 'DuskCard');
     vdom.children.unshift(<Sky uid="card" scene={cfg()?.profileSky && isScene(own) ? own : currentScene()} className="DuskSky--card" />);
   });
 

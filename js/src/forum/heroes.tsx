@@ -11,7 +11,7 @@ import type TagHero from 'ext:flarum/tags/forum/components/TagHero';
 import type TagsPage from 'ext:flarum/tags/forum/components/TagsPage';
 import Sky from './components/Sky';
 import DuskHero from './components/DuskHero';
-import { cfg, t } from './util';
+import { addClass, cfg, mergeStyle, t } from './util';
 
 type Children = Mithril.Children;
 type Vnode = Mithril.Vnode<Record<string, unknown>>;
@@ -27,8 +27,8 @@ const tagColor = (discussion: Discussion): string | null => {
 /** Sky + glow behind a core hero; the glow takes the tag's color, else the accent. */
 function skyBehind(vdom: Vnode, glow: string | null) {
   if (!vdom?.attrs) return;
-  vdom.attrs.className = (vdom.attrs.className || '') + ' DuskSkyHero';
-  vdom.attrs.style = { ...((vdom.attrs.style as object) || {}), '--dusk-glow': glow || 'var(--dusk-accent)' };
+  addClass(vdom.attrs, 'DuskSkyHero');
+  mergeStyle(vdom.attrs, { '--dusk-glow': glow || 'var(--dusk-accent)' });
 }
 
 const skyItems = (items: ItemList<Children>) => {

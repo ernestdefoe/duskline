@@ -21,6 +21,18 @@ export type DevicePrefs = { accent?: string; sky?: string; density?: string; mot
 
 export const html = document.documentElement;
 
+type Attrs = Record<string, unknown>;
+
+/** Add a class to a vnode's attrs (hooks that decorate another component's element). */
+export const addClass = (attrs: Attrs, name: string) => {
+  attrs.className = ((attrs.className as string) || '') + ' ' + name;
+};
+
+/** Merge inline style values into a vnode's attrs. */
+export const mergeStyle = (attrs: Attrs, style: Record<string, string | number>) => {
+  attrs.style = { ...((attrs.style as object) || {}), ...style };
+};
+
 /** The admin's choices; null when this visitor is on another theme (Wardrobe/Bespoke). */
 export const cfg = (): Config | null => (html.hasAttribute('data-duskline') && app.forum?.attribute<Config>('duskline')) || null;
 

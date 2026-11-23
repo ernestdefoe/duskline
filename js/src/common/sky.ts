@@ -6,7 +6,7 @@
 
 import { SCENES, type Scene } from './look';
 
-export { SCENES, type Scene };
+export type { Scene };
 
 export function sceneAt(date: Date = new Date()): Scene {
   const t = date.getHours() + date.getMinutes() / 60;
