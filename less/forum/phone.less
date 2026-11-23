@@ -61,16 +61,7 @@ html[data-duskline] {
       &::after { display: none; }
     }
 
-    // The post header as a wrapping row: spacing comes from the gap, not trailing
-    // margins, so a wide rank badge can't push an empty second line.
-    .Post-header > ul {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 4px 8px;
-
-      > li { margin: 0; }
-    }
+    .Post-header > ul { gap: 4px 8px; }
 
     // Phone avatars are 32px: the ring stays, the pill goes.
     .DuskAvatar::after { display: none; }

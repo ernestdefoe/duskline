@@ -49,6 +49,13 @@ html[data-duskline] {
   .IndexPage-nav .item-allDiscussions > a, .sideNav .Dropdown--select .Dropdown-menu > li > a, .sideNav .Dropdown--select .Dropdown-menu > li > .Button {
     border-radius: 10px;
   }
+  @media @tablet-up {
+    .sideNav .Dropdown--select .Dropdown-menu > li > a,
+    .sideNav .Dropdown--select .Dropdown-menu > li > .Button {
+      padding-left: 12px;
+      padding-right: 12px;
+    }
+  }
   .sideNav .Dropdown--select .Dropdown-menu > li.active > a, .sideNav .Dropdown--select .Dropdown-menu > li.active > .Button {
     background: var(--dusk-surface-2);
     color: var(--dusk-accent);
@@ -130,8 +137,9 @@ html[data-duskline] {
   }
   &:not(#x-hi) .DiscussionHero-title { color: var(--heading-color); }
 
-  // Posts sit on the page; a hairline between them.
-  .PostStream-item + .PostStream-item .Post {
+  // Posts sit on the page; one straight hairline between them (on the stream
+  // item, which has no rounded corners; not above the reply box).
+  .PostStream-item + .PostStream-item:not(:has(.ReplyPlaceholder)) {
     border-top: 1px solid var(--dusk-line);
   }
 

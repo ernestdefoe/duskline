@@ -42,15 +42,24 @@ html[data-duskline] {
     position: relative;
   }
 
-  // Renown's chip is taller than a line of text: center every header item on the
-  // line, so the chip, the name and the time share one middle (desktop; phones
-  // lay the header out as a flex row).
-  .Post-header > ul > li { vertical-align: middle; }
-  .UserCard-info > li, .RenownCardInfo { vertical-align: middle; }
+  // Post headers and profile-card info as wrapping flex rows: the name, Renown's
+  // taller chip, the time and anything else share one center line, and spacing
+  // comes from the gap (no trailing margins to push an empty second line).
+  .Post-header > ul, .UserCard-info {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+
+    > li { margin: 0; display: flex; align-items: center; }
+  }
+  .Post-header .PostMeta, .Post-header .PostMeta > a, .Post-header .PostUser, .Post-header .PostUser-name { display: inline-flex; align-items: center; }
+  .Post-header .username, .Post-header .PostMeta time { display: inline-block; line-height: 20px; }
+  .Post-header .RenownStanding-text { line-height: 20px; }
+  .UserCard-info { gap: 4px 16px; }
   .RenownCardInfo { display: inline-flex; align-items: center; gap: 6px; }
 
   .RenownPostBadge {
-    vertical-align: middle;
     display: inline-flex;
     align-items: center;
     height: 24px;

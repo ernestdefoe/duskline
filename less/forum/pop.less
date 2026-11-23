@@ -89,10 +89,11 @@ html[data-duskline] {
     box-shadow: 0 0 0 5px ~"color-mix(in srgb, var(--dusk-accent) 22%, transparent)";
   }
 
-  // The active place in the navigation: an accent edge with a glow.
+  // The active place in the navigation: a tinted pill with a soft neon outline.
   .sideNav .Dropdown--select .Dropdown-menu > li.active > a,
   .sideNav .Dropdown--select .Dropdown-menu > li.active > .Button {
-    box-shadow: inset 3px 0 0 var(--dusk-accent), -4px 0 14px -6px var(--dusk-accent);
+    background: ~"color-mix(in srgb, var(--dusk-accent) 11%, var(--dusk-surface))";
+    box-shadow: 0 0 0 1px ~"color-mix(in srgb, var(--dusk-accent) 30%, transparent)", 0 6px 16px ~"color-mix(in srgb, var(--dusk-accent) 14%, transparent)";
   }
 
   // Menus and modals: glass over the page.
