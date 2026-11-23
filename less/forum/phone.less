@@ -35,6 +35,18 @@ html[data-duskline] {
 
     .DuskRadar { display: none; }
 
+    // fof/discussion-views pins its count over the row's right edge; with a long
+    // count it lands on the info line. On phones it joins the line instead.
+    .DiscussionListItem-info {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 2px 6px;
+
+      > li { margin-right: 0; min-width: 0; }
+      > .item-discussion-views { position: static; }
+    }
+
     // The list runs edge to edge on phones: no side borders or corners.
     .DiscussionList-discussions {
       border-left: 0;
@@ -47,6 +59,17 @@ html[data-duskline] {
       .DuskRoad-stop:nth-child(-n+2) { display: none; }
       &::before { left: 10%; right: 10%; }
       &::after { display: none; }
+    }
+
+    // The post header as a wrapping row: spacing comes from the gap, not trailing
+    // margins, so a wide rank badge can't push an empty second line.
+    .Post-header > ul {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px 8px;
+
+      > li { margin: 0; }
     }
 
     // Phone avatars are 32px: the ring stays, the pill goes.
