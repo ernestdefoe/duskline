@@ -19,8 +19,6 @@ use Illuminate\Contracts\Filesystem\Factory as Filesystem;
 return [
     (new Extend\Frontend('forum'))
         ->js(__DIR__.'/js/dist/forum.js')
-        // The paint shop and the Achievements page load on first use.
-        ->jsDirectory(__DIR__.'/js/dist/forum')
         ->css(__DIR__.'/less/forum.less')
         // html[data-duskline] + the sky from the visitor's clock, before first paint.
         ->content(Content\Stamp::class),

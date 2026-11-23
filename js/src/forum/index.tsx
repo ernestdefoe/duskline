@@ -9,6 +9,7 @@ import XpPanel from './components/XpPanel';
 import RankRoad from './components/RankRoad';
 import HudBar from './components/HudBar';
 import Sky from './components/Sky';
+import PaintShopModal from './components/PaintShopModal';
 import { cfg, currentScene, followClock, standing, t } from './util';
 import { isNew } from './tagsNew';
 import { isScene } from '../common/sky';
@@ -107,7 +108,7 @@ app.initializers.add('ernestdefoe-duskline', () => {
         icon="fas fa-spray-can-sparkles"
         aria-label={String(t('paint.open'))}
         title={String(t('paint.open'))}
-        onclick={() => app.modal.show(() => import('./components/PaintShopModal'))}
+        onclick={() => app.modal.show(PaintShopModal)}
       />,
       15
     );
