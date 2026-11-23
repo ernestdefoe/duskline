@@ -26,8 +26,8 @@
         "ernestdefoe/renown": "Levels, ranks, XP and Prestige on player cards and profiles.",
         "flarum/tags": "Tag tiles with an unread glow.",
         "ernestdefoe/wardrobe": "Offer Duskline beside other themes, chosen by each member and guest.",
-        "acpl/mobile-tab": "Duskline's phone bar steps aside for Mobile Tab's own bar.",
-        "ernestdefoe/bespoke": "Duskline stays off while Bespoke styles the forum, unless Wardrobe lets each member pick their theme."
+        "ernestdefoe/bespoke": "Duskline stays off while Bespoke styles the forum, unless Wardrobe lets each member pick their theme.",
+        "ernestdefoe/mobile-tab": "Duskline's phone bar steps aside for Mobile Tab's own bar."
     },
     "autoload": {
         "psr-4": {
@@ -53,7 +53,9 @@
                 "flarum/tags",
                 "ernestdefoe/wardrobe",
                 "ernestdefoe/bespoke",
-                "acpl/mobile-tab"
+                "acpl/mobile-tab",
+                "ernestdefoe/mobile-tab",
+                "resofire/mobile-tab"
             ]
         }
     },

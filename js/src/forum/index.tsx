@@ -116,9 +116,10 @@ app.initializers.add('ernestdefoe-duskline', () => {
 
 let hud = false;
 
-/** The phone bar, once, unless Mobile Tab already gives the forum one. */
+/** The phone bar, once, unless a Mobile Tab extension already gives the forum one. */
 function mountHud() {
-  if (hud || !cfg()?.hud || 'acpl-mobile-tab' in (flarum as any).extensions) return;
+  const tabs = ['ernestdefoe-mobile-tab', 'acpl-mobile-tab', 'resofire-mobile-tab'];
+  if (hud || !cfg()?.hud || tabs.some((id) => id in (flarum as any).extensions)) return;
   hud = true;
   const root = document.createElement('div');
   root.className = 'DuskHud-root';
